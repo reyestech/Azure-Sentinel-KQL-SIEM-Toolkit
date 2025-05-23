@@ -439,6 +439,35 @@ SOC teams can quickly quarantine VMs or enable Just-In-Time (JIT) access only to
 * Emits new country entries within last 24 h.
 
 ---
+### 1️⃣ Repeated Malware Detection Trigger (Host Isolation)
+
+Malware variants often attempt to persist or spread by re-infecting systems after partial removal or by hiding in overlooked directories. A single detection may not warrant a response, but multiple alerts from the same host in a short timeframe suggest a deeper compromise or a need for further containment.
+
+This query identifies devices that exceed a specified number of antivirus detections within a one-hour period. When automated via scheduled analytics rules, it can trigger endpoint isolation, notify administrators, or launch remediation playbooks—helping SOC teams stay ahead of lateral movement.
+
+#### How it works
+
+* Queries `DeviceEvents` for `AntivirusDetection` actions.  
+* Aggregates detection counts by `DeviceName` and hour.  
+* Filters for hosts with more than 5 detections in 60 minutes.  
+* Outputs affected hostnames and detection counts.
+
+<details>
+<summary><strong>📋 Copy Query</strong></summary>
+
+```kql
+// Repeated Malware Detection
+DeviceEvents
+| where ActionType == "AntivirusDetection"
+| summarize DetectedCount = count() by DeviceName, bin(Timestamp, 1h)
+| where DetectedCount > 5
+| project Timestamp, DeviceName, DetectedCount
+
+
+
+
+
+
 
 ## Conclusion
 
